@@ -35,18 +35,18 @@ while(True):
         roi_gray = gray[y:y + h, x:x + w]
         roi_color = img[y:y + h, x:x + w]
 
-        roi_eyes = gray[y+(h/2):y + h, x:x + w]
-        roi_mouth = gray[y:y + (h/2), x:x + w]
+        roi_mouth = gray[y+(h/2):y + h, x:x + w]
+        roi_eyes = gray[y:y + (h/2), x:x + w]
 
-        roi_color_eyes = img[y+(h/2):y + h, x:x + w]
-        roi_color_mouth = img[y:y + (h/2), x:x + w]
+        roi_color_mouth = img[y+(h/2):y + h, x:x + w]
+        roi_color_eyes = img[y:y + (h/2), x:x + w]
 
         eyes = eye_cascade.detectMultiScale(roi_eyes)
         mouth = mouth_cascade.detectMultiScale(roi_mouth)
         for (ex, ey, ew, eh) in eyes:
-               cv2.rectangle(roi_color_eyes, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
+               cv2.rectangle(roi_color_eyes, (ex, ey), (ex + ew, ey + eh), (0, 0, 255), 2)
         for (ex, ey, ew, eh) in mouth:
-               cv2.rectangle(roi_color_mouth, (ex, ey), (ex + ew, ey + eh), (0, 0, 255), 2)
+               cv2.rectangle(roi_color_mouth, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
 
 
 

@@ -3,8 +3,16 @@ import cv2
 
 cap = cv2.VideoCapture(0)
 
+import os
+
+def cheminAbsolu(file):
+    root = os.path.dirname(__file__)
+    abs_path = os.path.join(root, file)
+    return abs_path
+
 face_cascade = cv2.CascadeClassifier('C:\Users\Vava\Documents\Fac\opencv\sources\data\haarcascades_cuda\haarcascade_frontalface_default.xml')
-eye_cascade = cv2.CascadeClassifier('C:\Users\Vava\Documents\Fac\opencv\sources\data\haarcascades_cuda\haarcascade_eye.xml')
+eye_cascade = cv2.CascadeClassifier('C:\Users\Vava\Documents\Fac\Recherche\\venv\FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_eyepair_small.xml')
+mouth_cascade = cv2.CascadeClassifier('C:\Users\Vava\Documents\Fac\Recherche\\venv\FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_mouth.xml')
 
 while(True):
     ret, img = cap.read()
@@ -16,8 +24,12 @@ while(True):
         roi_gray = gray[y:y + h, x:x + w]
         roi_color = img[y:y + h, x:x + w]
         eyes = eye_cascade.detectMultiScale(roi_gray)
+        mouth = mouth_cascade.detectMultiScale(roi_gray)
         for (ex, ey, ew, eh) in eyes:
-            cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
+               cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
+        for (ex, ey, ew, eh) in mouth:
+               cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 0, 255), 2)
+
 
 
     # Display the resulting frame

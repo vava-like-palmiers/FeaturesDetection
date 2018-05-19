@@ -4,15 +4,16 @@ import cv2
 cap = cv2.VideoCapture(0)
 
 import os
+import string
 
 def cheminAbsolu(file):
-    root = os.path.dirname(__file__)
-    abs_path = os.path.join(root, file)
-    return abs_path
+    root = os.path.abspath(file)
+    root = root.replace("\\ve", "\\\\ve")
+    return root
 
-face_cascade = cv2.CascadeClassifier('C:\Users\Vava\Documents\Fac\opencv\sources\data\haarcascades_cuda\haarcascade_frontalface_default.xml')
-eye_cascade = cv2.CascadeClassifier('C:\Users\Vava\Documents\Fac\Recherche\\venv\FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_eyepair_small.xml')
-mouth_cascade = cv2.CascadeClassifier('C:\Users\Vava\Documents\Fac\Recherche\\venv\FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_mouth.xml')
+face_cascade = cv2.CascadeClassifier(cheminAbsolu('FeaturesDetection\HaarCascadeMCS\haarcascade_frontalface_default.xml'))
+eye_cascade = cv2.CascadeClassifier(cheminAbsolu('FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_eyepair_big.xml'))
+mouth_cascade = cv2.CascadeClassifier(cheminAbsolu('FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_mouth.xml'))
 
 while(True):
     ret, img = cap.read()

@@ -5,15 +5,25 @@ cap = cv2.VideoCapture(0)
 
 import os
 import string
+import platform
 
-def cheminAbsolu(file):
+def cheminAbsoluWindows(file):
     root = os.path.abspath(file)
     root = root.replace("\\ve", "\\\\ve")
     return root
 
-face_cascade = cv2.CascadeClassifier(cheminAbsolu('FeaturesDetection\HaarCascadeMCS\haarcascade_frontalface_default.xml'))
-eye_cascade = cv2.CascadeClassifier(cheminAbsolu('FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_eyepair_big.xml'))
-mouth_cascade = cv2.CascadeClassifier(cheminAbsolu('FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_mouth.xml'))
+def cheminAbsoluLinux(file):
+    root = os.path.abspath(file)
+    return root
+
+if(platform.system() == 'Windows'):
+    face_cascade = cv2.CascadeClassifier(cheminAbsolu('FeaturesDetection\HaarCascadeMCS\haarcascade_frontalface_default.xml'))
+    eye_cascade = cv2.CascadeClassifier(cheminAbsolu('FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_eyepair_big.xml'))
+    mouth_cascade = cv2.CascadeClassifier(cheminAbsolu('FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_mouth.xml'))
+elif(platform.system() == 'Linux'):
+    face_cascade = cv2.CascadeClassifier(cheminAbsolu('HaarCascadeMCS\haarcascade_frontalface_default.xml'))
+    eye_cascade = cv2.CascadeClassifier(cheminAbsolu('HaarCascadeMCS\haarcascade_mcs_eyepair_big.xml'))
+    mouth_cascade = cv2.CascadeClassifier(cheminAbsolu('HaarCascadeMCS\haarcascade_mcs_mouth.xml'))
 
 while(True):
     ret, img = cap.read()

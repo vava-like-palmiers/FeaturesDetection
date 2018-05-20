@@ -90,7 +90,7 @@ def variations(table):
         return 0
 
 #seuil au-dela duquel il y a detection
-seal = 0.005
+seal = 0.006
 #table des valeurs de la bouche
 tableMouth=[]
 

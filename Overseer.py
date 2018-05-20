@@ -1,44 +1,37 @@
 import numpy as np
 import cv2
-
-cap = cv2.VideoCapture(0)
-
 import os
 import string
 import platform
 import math
 
+safety = 5 #defini le nombre de points dans notre tableau, ie le nombre d'image sur lesquelles on regarde les variations
+
+#fonction qui retourne le chemin windows vers file
 def cheminAbsoluWindows(file):
     root = os.path.abspath(file)
     root = root.replace("\\ve", "\\\\ve")
     return root
 
+#fonction qui retourne le chemin linux vers file
 def cheminAbsoluLinux(file):
     root = os.path.abspath(file)
     return root
 
-if(platform.system() == 'Windows'):
-    face_cascade = cv2.CascadeClassifier(cheminAbsoluWindows('FeaturesDetection\HaarCascadeMCS\haarcascade_frontalface_default.xml'))
-    eye_cascade = cv2.CascadeClassifier(cheminAbsoluWindows('FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_eyepair_big.xml'))
-    mouth_cascade = cv2.CascadeClassifier(cheminAbsoluWindows('FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_mouth.xml'))
-elif(platform.system() == 'Linux'):
-    face_cascade = cv2.CascadeClassifier(cheminAbsoluLinux('HaarCascadeMCS/haarcascade_frontalface_default.xml'))
-    eye_cascade = cv2.CascadeClassifier(cheminAbsoluLinux('HaarCascadeMCS/haarcascade_mcs_eyepair_big.xml'))
-    mouth_cascade = cv2.CascadeClassifier(cheminAbsoluLinux('HaarCascadeMCS/haarcascade_mcs_mouth.xml'))
-
-
-safety = 5 #defini le nombre de points dans notre tableau
-
+#fonction qui estime la distance entre deux features
 def distance(box1, box2):
     distp1 = math.sqrt(((box1[0]-box2[0])*(box1[0]-box2[0]))+((box1[1]-box2[1])*(box1[1]-box2[1])))
     distp2 = math.sqrt(((box1[0]+box1[2]-box2[0]-box2[2])*(box1[0]+box1[2]-box2[0]-box2[2]))+((box1[1]+box1[3]-box2[1]-box2[3])*(box1[1]+box1[3]-box2[1]-box2[3])))
     return distp1 + distp2
 
+#procedure qui ajoute une valeur a la fin de table et en retire une au debut
+#(ceci est utile pour s'assurer que tableMouth se comporte comme une file fifo de taille safety)
 def push(table,value):
     if len(table)>=safety:
         del table[0]
     table.append(value)
 
+#calcule et retourne le coefficient directeur de la droite de regression sur le tableau table
 def coefficientRegression(table):
     n=len(table)
     sumXiYi=0
@@ -60,6 +53,7 @@ def coefficientRegression(table):
 
     return ( (n*sumXiYi)-(sumXi*sumYi) ) / ( (n*sumXipow2) - sumXipow2 )
 
+#calcule et retourne le coefficient de correlation de la droite de regression du tableau table
 def coefficientCorrelation(table):
     n=len(table)
     xm=0
@@ -84,18 +78,33 @@ def coefficientCorrelation(table):
 
     return sumi_m / math.sqrt(sumXi_Xmpow2 * sumYi_Ympow2)
 
+#retourne la variation globale du tableau table (et 0 si le tableau est vide)
 def variations(table):
     if len(table)>=safety:
         return coefficientRegression(table)#*((-coefficientCorrelation(table)+1)/2)
     else:
         return 0
 
-#seuil au-dela duquel il y a detection
-seal = 0.005
-#table des valeurs de la bouche
-tableMouth=[]
 
-oldval=0
+#BOUCLE PRINCIPALE DU PROGRAMME
+
+cap = cv2.VideoCapture(0)
+
+if(platform.system() == 'Windows'):
+    face_cascade = cv2.CascadeClassifier(cheminAbsoluWindows('FeaturesDetection\HaarCascadeMCS\haarcascade_frontalface_default.xml'))
+    eye_cascade = cv2.CascadeClassifier(cheminAbsoluWindows('FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_eyepair_big.xml'))
+    mouth_cascade = cv2.CascadeClassifier(cheminAbsoluWindows('FeaturesDetection\HaarCascadeMCS\haarcascade_mcs_mouth.xml'))
+elif(platform.system() == 'Linux'):
+    face_cascade = cv2.CascadeClassifier(cheminAbsoluLinux('HaarCascadeMCS/haarcascade_frontalface_default.xml'))
+    eye_cascade = cv2.CascadeClassifier(cheminAbsoluLinux('HaarCascadeMCS/haarcascade_mcs_eyepair_big.xml'))
+    mouth_cascade = cv2.CascadeClassifier(cheminAbsoluLinux('HaarCascadeMCS/haarcascade_mcs_mouth.xml'))
+
+
+seal = 0.005 #seuil au-dela duquel il y a detection
+
+tableMouth=[] #table des valeurs de la bouche
+
+oldval=0 #ancienne valeur de la bouche
 
 while(True):
     ret, img = cap.read()
@@ -118,9 +127,7 @@ while(True):
         for (ex, ey, ew, eh) in eyes:
             cv2.rectangle(roi_color_eyes, (ex, ey), (ex + ew, ey + eh), (0, 0, 255), 2)
 
-        #Pour detecter une seule bouche, on considere qu'elle sera la feature de largeur la plus grande
-        #les erreurs de detection etant souvent les narines ou le menton
-
+        #Pour limiter les fausses detections, on demande a garder les bouches les plus proches de l'ancienne bouche
 
         mindist=math.sqrt((x*x)+(y*y))
         H=0
@@ -129,22 +136,23 @@ while(True):
         Y=0
         for (ex, ey, ew, eh) in mouth:
             if(len(tableMouth)==0):
-                oldbox=(ex, ey, ew, eh)
-            if(distance((ex, ey, ew, eh), oldbox)<mindist):
-                mindist=distance((ex, ey, ew, eh), oldbox)
+                oldmouth=(ex, ey, ew, eh)
+            if(distance((ex, ey, ew, eh), oldmouth)<mindist):
+                mindist=distance((ex, ey, ew, eh), oldmouth)
                 H=eh
                 W=ew
                 X=ex
                 Y=ey
 
         cv2.rectangle(roi_color_mouth, (X, Y), (X + W, Y + H), (0, 255, 0), 2)
-        oldbox=(X,Y,W,H)
+        oldmouth=(X,Y,W,H)
 
         scale = math.sqrt((w*w*4/9)+(h*h/4))
         push(tableMouth,  (math.sqrt(W*W+H*H) - oldval)/scale )
         oldval = math.sqrt(W*W+H*H)
         break
 
+    #on detecte un changement seulement si la vitesse de variation de la feature est superieure au seuil pose
     if math.fabs(variations(tableMouth)) > seal:
         print(variations(tableMouth))
 

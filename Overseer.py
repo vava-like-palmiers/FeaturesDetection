@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import os
-import string
 import platform
 import math
 
@@ -84,7 +83,6 @@ def variations(table):
         return coefficientRegression(table)#*((-coefficientCorrelation(table)+1)/2)
     else:
         return 0
-
 
 #BOUCLE PRINCIPALE DU PROGRAMME
 

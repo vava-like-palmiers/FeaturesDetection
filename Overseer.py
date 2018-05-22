@@ -98,7 +98,7 @@ elif(platform.system() == 'Linux'):
     mouth_cascade = cv2.CascadeClassifier(cheminAbsoluLinux('HaarCascadeMCS/haarcascade_mcs_mouth.xml'))
 
 
-seal = 0.005 #seuil au-dela duquel il y a detection
+seal = 0.006 #seuil au-dela duquel il y a detection
 
 tableMouth=[] #table des valeurs de la bouche
 
@@ -146,8 +146,8 @@ while(True):
         oldmouth=(X,Y,W,H)
 
         scale = math.sqrt((w*w*4/9)+(h*h/4))
-        push(tableMouth,  (math.sqrt(W*W+H*H) - oldval)/scale )
-        oldval = math.sqrt(W*W+H*H)
+        push(tableMouth,  (math.sqrt(W*W+H*H)/scale) - oldval )
+        oldval = (math.sqrt(W*W+H*H)/scale)
         break
 
     #on detecte un changement seulement si la vitesse de variation de la feature est superieure au seuil pose
